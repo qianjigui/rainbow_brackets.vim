@@ -164,9 +164,3 @@ func rainbow_brackets#hook()
 endfunc
 
 command! RainbowBracketsToggle call rainbow_brackets#toggle()
-
-if (exists('g:rainbow_brackets_active') && g:rainbow_brackets_active)
-	auto syntax * call rainbow_brackets#hook()
-	auto colorscheme * call rainbow_brackets#show()
-endif
-
