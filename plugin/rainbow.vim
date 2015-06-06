@@ -14,15 +14,15 @@
 "	parentheses by this way (read file vim73/rgb.txt for all named colors).
 "	READ THE SOURCE FILE FROM LINE 25 TO LINE 50 FOR EXAMPLE.
 "User Command:
-"	:RainbowToggle		--you can use it to toggle this plugin.
+"	:RainbowBracketsToggle		--you can use it to toggle this plugin.
 "==============================================================================
 
-if exists('s:loaded') || !(exists('g:rainbow_active') || exists('g:rainbow_conf'))
+if exists('s:rainbow_brackets_loaded')
 	finish
 endif
-let s:loaded = 1
+let s:rainbown_brackets_loaded = 1
  
-let s:rainbow_conf = {
+let s:rainbow_brackets_conf = {
 \	'guifgs': ['royalblue3', 'darkorange3', 'seagreen3', 'firebrick'],
 \	'ctermfgs': ['lightblue', 'lightyellow', 'lightcyan', 'lightmagenta'],
 \	'operators': '_,_',
@@ -69,8 +69,8 @@ func s:resolve_parenthesis(p)
 	return [paren, containedin, contains, op]
 endfunc
 
-func rainbow#load()
-	let conf = b:rainbow_conf
+func rainbow_brackets#load()
+	let conf = b:rainbow_brackets_conf
 	let maxlvl = has('gui_running')? len(conf.guifgs) : len(conf.ctermfgs)
 	for i in range(len(conf.parentheses))
 		let p = conf.parentheses[i]
@@ -82,90 +82,91 @@ func rainbow#load()
 	let def_rg = 'syn region %s matchgroup=%s containedin=%s contains=%s,@NoSpell %s'
 	let def_op = 'syn match %s %s containedin=%s contained'
 
-	call rainbow#clear()
-	let b:rainbow_loaded = maxlvl
+	call rainbow_brackets#clear()
+	let b:rainbow_brackets_loaded = maxlvl
 	for parenthesis_args in conf.parentheses
 		let [paren, containedin, contains, op] = s:resolve_parenthesis(parenthesis_args)
 		if op == '' |let op = conf.operators |endif
 		for lvl in range(maxlvl)
-			if op != '' |exe printf(def_op, 'rainbow_o'.lvl, op, 'rainbow_r'.lvl) |endif
+			if op != '' |exe printf(def_op, 'rainbow_brackets_o'.lvl, op, 'rainbow_brackets_r'.lvl) |endif
 			if lvl == 0
 				if containedin == ''
-					exe printf(def_rg, 'rainbow_r0', 'rainbow_p0', 'rainbow_r'.(maxlvl - 1), contains, paren)
+					exe printf(def_rg, 'rainbow_brackets_r0', 'rainbow_brackets_p0', 'rainbow_brackets_r'.(maxlvl - 1), contains, paren)
 				endif
 			else
-				exe printf(def_rg, 'rainbow_r'.lvl, 'rainbow_p'.lvl.(' contained'), 'rainbow_r'.((lvl + maxlvl - 1) % maxlvl), contains, paren)
+				exe printf(def_rg, 'rainbow_brackets_r'.lvl, 'rainbow_brackets_p'.lvl.(' contained'), 'rainbow_brackets_r'.((lvl + maxlvl - 1) % maxlvl), contains, paren)
 			endif
 		endfor
 		if containedin != ''
-			exe printf(def_rg, 'rainbow_r0', 'rainbow_p0 contained', containedin.',rainbow_r'.(maxlvl - 1), contains, paren)
+			exe printf(def_rg, 'rainbow_brackets_r0', 'rainbow_brackets_p0 contained', containedin.',rainbow_brackets_r'.(maxlvl - 1), contains, paren)
 		endif
 	endfor
-	call rainbow#show()
+	call rainbow_brackets#show()
 endfunc
 
-func rainbow#clear()
-	call rainbow#hide()
-	if exists('b:rainbow_loaded')
-		for each in range(b:rainbow_loaded)
-			exe 'syn clear rainbow_r'.each
-			exe 'syn clear rainbow_o'.each
+func rainbow_brackets#clear()
+	call rainbow_brackets#hide()
+	if exists('b:rainbow_brackets_loaded')
+		for each in range(b:rainbow_brackets_loaded)
+			exe 'syn clear rainbow_brackets_r'.each
+			exe 'syn clear rainbow_brackets_o'.each
 		endfor
-		unlet b:rainbow_loaded
+		unlet b:rainbow_brackets_loaded
 	endif
 endfunc
 
-func rainbow#show()
-	if exists('b:rainbow_loaded')
-		let b:rainbow_visible = 1
-		for id in range(b:rainbow_loaded)
-			let ctermfg = b:rainbow_conf.ctermfgs[id % len(b:rainbow_conf.ctermfgs)]
-			let guifg = b:rainbow_conf.guifgs[id % len(b:rainbow_conf.guifgs)]
-			exe 'hi default rainbow_p'.id.' ctermfg='.ctermfg.' guifg='.guifg
-			exe 'hi default rainbow_o'.id.' ctermfg='.ctermfg.' guifg='.guifg
+func rainbow_brackets#show()
+	if exists('b:rainbow_brackets_loaded')
+		let b:rainbow_brackets_visible = 1
+		for id in range(b:rainbow_brackets_loaded)
+			let ctermfg = b:rainbow_brackets_conf.ctermfgs[id % len(b:rainbow_brackets_conf.ctermfgs)]
+			let guifg = b:rainbow_brackets_conf.guifgs[id % len(b:rainbow_brackets_conf.guifgs)]
+			exe 'hi default rainbow_brackets_p'.id.' ctermfg='.ctermfg.' guifg='.guifg
+			exe 'hi default rainbow_brackets_o'.id.' ctermfg='.ctermfg.' guifg='.guifg
 		endfor
 	endif
 endfunc
 
-func rainbow#hide()
-	if exists('b:rainbow_visible')
-		for each in range(b:rainbow_loaded)
-			exe 'hi clear rainbow_p'.each
-			exe 'hi clear rainbow_o'.each
+func rainbow_brackets#hide()
+	if exists('b:rainbow_brackets_visible')
+		for each in range(b:rainbow_brackets_loaded)
+			exe 'hi clear rainbow_brackets_p'.each
+			exe 'hi clear rainbow_brackets_o'.each
 		endfor
-		unlet b:rainbow_visible
+		unlet b:rainbow_brackets_visible
 	endif
 endfunc
 
-func rainbow#toggle()
-	if exists('b:rainbow_loaded')
-		call rainbow#clear()
+func rainbow_brackets#toggle()
+	if exists('b:rainbow_brackets_loaded')
+		call rainbow_brackets#clear()
 	else
-		if exists('b:rainbow_conf')
-			call rainbow#load()
+		if exists('b:rainbow_brackets_conf')
+			call rainbow_brackets#load()
 		else
-			call rainbow#hook()
+			call rainbow_brackets#hook()
 		endif
 	endif
 endfunc
 
-func rainbow#hook()
-	let g_conf = extend(copy(s:rainbow_conf), exists('g:rainbow_conf')? g:rainbow_conf : {}) |unlet g_conf.separately
-	if exists('g:rainbow_conf.separately') && has_key(g:rainbow_conf.separately, '*')
-		let separately = copy(g:rainbow_conf.separately)
+func rainbow_brackets#hook()
+	let g_conf = extend(copy(s:rainbow_brackets_conf), exists('g:rainbow_brackets_conf')? g:rainbow_brackets_conf : {}) |unlet g_conf.separately
+	if exists('g:rainbow_brackets_conf.separately') && has_key(g:rainbow_brackets_conf.separately, '*')
+		let separately = copy(g:rainbow_brackets_conf.separately)
 	else
-		let separately = extend(copy(s:rainbow_conf.separately), exists('g:rainbow_conf.separately')? g:rainbow_conf.separately : {})
+		let separately = extend(copy(s:rainbow_brackets_conf.separately), exists('g:rainbow_brackets_conf.separately')? g:rainbow_brackets_conf.separately : {})
 	endif
 	let b_conf = has_key(separately, &ft)? separately[&ft] : separately['*']
 	if type(b_conf) == type({})
-		let b:rainbow_conf = extend(g_conf, b_conf)
-		call rainbow#load()
+		let b:rainbow_brackets_conf = extend(g_conf, b_conf)
+		call rainbow_brackets#load()
 	endif
 endfunc
 
-command! RainbowToggle call rainbow#toggle()
+command! RainbowBracketsToggle call rainbow_brackets#toggle()
 
-if (exists('g:rainbow_active') && g:rainbow_active)
-	auto syntax * call rainbow#hook()
-	auto colorscheme * call rainbow#show()
+if (exists('g:rainbow_brackets_active') && g:rainbow_brackets_active)
+	auto syntax * call rainbow_brackets#hook()
+	auto colorscheme * call rainbow_brackets#show()
 endif
+
