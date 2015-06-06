@@ -163,4 +163,12 @@ func rainbow_brackets#hook()
 	endif
 endfunc
 
+func rainbow_brackets#open()
+    call rainbow_brackets#clear()
+    call rainbow_brackets#toggle()
+endfunc
+
 command! RainbowBracketsToggle call rainbow_brackets#toggle()
+command! RainbowBracketsOpen call rainbow_brackets#open()
+
+
